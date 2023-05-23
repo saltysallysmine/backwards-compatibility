@@ -2,6 +2,7 @@ package com.mipt.backwardscompatibility.Controllers;
 
 import com.mipt.backwardscompatibility.Service.Requests.RequestV1;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV1;
+import com.mipt.backwardscompatibility.Service.Responses.ResponseV2;
 import com.mipt.backwardscompatibility.Service.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -66,5 +67,32 @@ class MainControllerTest {
         ResponseV1 expectedResponse = new ResponseV1(foundUsers);
         assertEquals(response, expectedResponse);
     }
+
+    @Test
+    public void getUserV2Test1() {
+        // Request with _
+        String likeString = "AND__Y";
+        RequestV1 requestV1 = new RequestV1(likeString);
+        ResponseV2 response = mainController.getUsersV2(requestV1);
+        Set<ResponseV2.UserV2> foundUsers = Set.of(
+                new ResponseV2.UserV2("ANDREY"),
+                new ResponseV2.UserV2("ANDreY"));
+        ResponseV2 expectedResponse = new ResponseV2(4, foundUsers);
+        assertEquals(response, expectedResponse);
+    }
+
+    @Test
+    public void getUserV2Test2() {
+        // Request with %
+        String likeString = "AND%Y";
+        RequestV1 requestV1 = new RequestV1(likeString);
+        ResponseV2 response = mainController.getUsersV2(requestV1);
+        Set<ResponseV2.UserV2> foundUsers = Set.of(
+                new ResponseV2.UserV2("ANDREY"),
+                new ResponseV2.UserV2("ANDreY"));
+        ResponseV2 expectedResponse = new ResponseV2(4, foundUsers);
+        assertEquals(response, expectedResponse);
+    }
+
 
 }

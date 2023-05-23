@@ -1,7 +1,6 @@
 package com.mipt.backwardscompatibility.Controllers;
 
 import com.mipt.backwardscompatibility.Service.Requests.RequestV1;
-import com.mipt.backwardscompatibility.Service.Requests.RequestV2;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV1;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV2;
 import com.mipt.backwardscompatibility.Service.User;
@@ -13,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
 
 @Slf4j
 @RestController
@@ -54,10 +51,25 @@ public class MainController {
         return response;
     }
 
-//    @PostMapping("v2/get-users")
-//    public ResponseV2 getUsersV2(@NotNull @RequestBody RequestV2 request) {
-//    }
-//
+    @PostMapping("v2/get-users")
+    public ResponseV2 getUsersV2(@NotNull @RequestBody RequestV1 request) {
+        if (request.getLikeString() == null) {
+            log.info("Get request with null likeString");
+            return new ResponseV2(usersRepository.size(), null);
+        }
+        Set<ResponseV2.UserV2> foundUsers = new java.util.HashSet<>(Set.of());
+        ResponseV2 response = new ResponseV2(usersRepository.size(), null);
+        String requestedPattern = getRegexOf(request.getLikeString());
+        log.info("Get request with likeString=" + request.getLikeString() + " converted as " + requestedPattern);
+        usersRepository.forEach(user -> {
+            if (user.getLogin().matches(requestedPattern)) {
+                foundUsers.add(new ResponseV2.UserV2(user.getLogin()));
+            }
+        });
+        response.setFoundUsers(foundUsers);
+        return response;
+    }
+
 //    @PostMapping("v3/get-users")
 //    public Set<User> getUsersV3(@NotNull @RequestBody GetUsersRequest request) { }
 //
