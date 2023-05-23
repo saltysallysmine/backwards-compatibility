@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Set;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,78 +44,79 @@ class MainControllerTest {
         assertEquals(mainController.getRegexOf(likeString), expectedString);
     }
 
-    @Test
-    public void getUserV1Test1() {
-        // Request with _
-        String likeString = "AND__Y";
+    public void getUsersAndAssertEqualsV1(String likeString) {
         RequestV1 requestV1 = new RequestV1(likeString);
         ResponseV1 response = mainController.getUsersV1(requestV1);
-        Set<ResponseV1.UserV1> foundUsers = Set.of(
+        Set<ResponseV1.UserV1> foundUsers = new HashSet<>(Set.of(
                 new ResponseV1.UserV1("ANDREY"),
-                new ResponseV1.UserV1("ANDreY"));
+                new ResponseV1.UserV1("ANDreY")));
+        if (likeString == null) {
+            foundUsers.add(new ResponseV1.UserV1("KONSTANTIN"));
+            foundUsers.add(new ResponseV1.UserV1("VALERY"));
+        }
         ResponseV1 expectedResponse = new ResponseV1(foundUsers);
         assertEquals(response, expectedResponse);
     }
 
     @Test
-    public void getUserV1Test2() {
+    public void getUserV1Test() {
+        // Request with _
+        getUsersAndAssertEqualsV1("AND__Y");
         // Request with %
-        String likeString = "AND%Y";
-        RequestV1 requestV1 = new RequestV1(likeString);
-        ResponseV1 response = mainController.getUsersV1(requestV1);
-        Set<ResponseV1.UserV1> foundUsers = Set.of(
-                new ResponseV1.UserV1("ANDREY"),
-                new ResponseV1.UserV1("ANDreY"));
-        ResponseV1 expectedResponse = new ResponseV1(foundUsers);
-        assertEquals(response, expectedResponse);
+        getUsersAndAssertEqualsV1("AND%Y");
+        // Request with null
+        getUsersAndAssertEqualsV1(null);
     }
 
-    @Test
-    public void getUserV2Test1() {
-        // Request with _
-        String likeString = "AND__Y";
+    public void getUsersAndAssertEqualsV2(String likeString) {
         RequestV1 requestV1 = new RequestV1(likeString);
         ResponseV2 response = mainController.getUsersV2(requestV1);
-        Set<ResponseV2.UserV2> foundUsers = Set.of(
+        Set<ResponseV2.UserV2> foundUsers = new HashSet<>(Set.of(
                 new ResponseV2.UserV2("ANDREY"),
-                new ResponseV2.UserV2("ANDreY"));
+                new ResponseV2.UserV2("ANDreY")));
+        if (likeString == null) {
+            foundUsers.add(new ResponseV2.UserV2("KONSTANTIN"));
+            foundUsers.add(new ResponseV2.UserV2("VALERY"));
+        }
         ResponseV2 expectedResponse = new ResponseV2(4, foundUsers);
         assertEquals(response, expectedResponse);
     }
 
     @Test
-    public void getUserV2Test2() {
+    public void getUserV2Test() {
+        // Request with _
+        getUsersAndAssertEqualsV2("AND__Y");
         // Request with %
-        String likeString = "AND%Y";
-        RequestV1 requestV1 = new RequestV1(likeString);
-        ResponseV2 response = mainController.getUsersV2(requestV1);
-        Set<ResponseV2.UserV2> foundUsers = Set.of(
-                new ResponseV2.UserV2("ANDREY"),
-                new ResponseV2.UserV2("ANDreY"));
-        ResponseV2 expectedResponse = new ResponseV2(4, foundUsers);
-        assertEquals(response, expectedResponse);
+        getUsersAndAssertEqualsV2("AND%Y");
+        // Request with null
+        getUsersAndAssertEqualsV2(null);
     }
 
-    @Test
-    public void getUserV3Test1() {
-        // Request with _
-        String likeString = "AND__Y";
+    public void getUsersAndAssertEqualsV3(String likeString) {
         RequestV1 requestV1 = new RequestV1(likeString);
         ResponseV3 response = mainController.getUsersV3(requestV1);
-        Set<ResponseV3.UserV3> foundUsers = Set.of(
+        Set<ResponseV3.UserV3> foundUsers = new HashSet<>(Set.of(
                 new ResponseV3.UserV3("ANDREY", "Andrey", "Shinkarenko", "Vladimirovich"),
-                new ResponseV3.UserV3("ANDreY", "Andrey", "Menelaevich", null));
+                new ResponseV3.UserV3("ANDreY", "Andrey", "Menelaevich", null)));
+        if (likeString == null) {
+            foundUsers.add(new ResponseV3.UserV3(
+                    "KONSTANTIN", "Konstantin","Bolshikov", "Andreevich"));
+            foundUsers.add(new ResponseV3.UserV3(
+                    "VALERY", "Valery", "Bergman", "Dmitrievich"));
+        }
         ResponseV3 expectedResponse = new ResponseV3(4, foundUsers);
         assertEquals(response, expectedResponse);
     }
 
     @Test
-    public void getUserV3Test2() {
+    public void getUserV3Test() {
+        // Request with _
+        getUsersAndAssertEqualsV3("AND__Y");
         // Request with %
-        String likeString = "AND%Y";
-        RequestV1 requestV1 = new RequestV1(likeString);
-        ResponseV3 response = mainController.getUsersV3(requestV1);
-        Set<ResponseV3.UserV3> foundUsers = Set.of(
+        getUsersAndAssertEqualsV3("AND%Y");
+        // Request with null
+        getUsersAndAssertEqualsV3(null);
+    }
                 new ResponseV3.UserV3("ANDREY", "Andrey", "Shinkarenko", "Vladimirovich"),
                 new ResponseV3.UserV3("ANDreY", "Andrey", "Menelaevich", null));
         ResponseV3 expectedResponse = new ResponseV3(4, foundUsers);

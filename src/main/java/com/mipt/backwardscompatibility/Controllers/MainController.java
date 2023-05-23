@@ -35,12 +35,17 @@ public class MainController {
 
     @PostMapping("v1/get-users")
     public ResponseV1 getUsersV1(@NotNull @RequestBody RequestV1 request) {
-        if (request.getLikeString() == null) {
-            log.info("Get request with null likeString");
-            return new ResponseV1(null);
-        }
         Set<ResponseV1.UserV1> foundUsers = new java.util.HashSet<>(Set.of());
         ResponseV1 response = new ResponseV1(null);
+        // null requestedPattern -> send all users
+        if (request.getLikeString() == null) {
+            log.info("Get request with null likeString");
+            usersRepository.forEach(user -> {
+                foundUsers.add(new ResponseV1.UserV1(user.getLogin()));
+            });
+            return new ResponseV1(foundUsers);
+        }
+        // not null requestedPattern
         String requestedPattern = getRegexOf(request.getLikeString());
         log.info("Get request with likeString=" + request.getLikeString() + " converted as " + requestedPattern);
         usersRepository.forEach(user -> {
@@ -54,12 +59,17 @@ public class MainController {
 
     @PostMapping("v2/get-users")
     public ResponseV2 getUsersV2(@NotNull @RequestBody RequestV1 request) {
-        if (request.getLikeString() == null) {
-            log.info("Get request with null likeString");
-            return new ResponseV2(usersRepository.size(), null);
-        }
         Set<ResponseV2.UserV2> foundUsers = new java.util.HashSet<>(Set.of());
         ResponseV2 response = new ResponseV2(usersRepository.size(), null);
+        // null requestedPattern -> send all users
+        if (request.getLikeString() == null) {
+            log.info("Get request with null likeString");
+            usersRepository.forEach(user -> {
+                foundUsers.add(new ResponseV2.UserV2(user.getLogin()));
+            });
+            return new ResponseV2(usersRepository.size(), foundUsers);
+        }
+        // not null requestedPattern
         String requestedPattern = getRegexOf(request.getLikeString());
         log.info("Get request with likeString=" + request.getLikeString() + " converted as " + requestedPattern);
         usersRepository.forEach(user -> {
@@ -73,6 +83,36 @@ public class MainController {
 
     @PostMapping("v3/get-users")
     public ResponseV3 getUsersV3(@NotNull @RequestBody RequestV1 request) {
+        Set<ResponseV3.UserV3> foundUsers = new java.util.HashSet<>(Set.of());
+        ResponseV3 response = new ResponseV3(usersRepository.size(), null);
+        // null requestedPattern -> send all users
+        if (request.getLikeString() == null) {
+            log.info("Get request with null likeString");
+            usersRepository.forEach(user -> {
+                foundUsers.add(new ResponseV3.UserV3(
+                        user.getLogin(),
+                        user.getName(),
+                        user.getSurname(),
+                        user.getPatronymic()));
+            });
+            return new ResponseV3(usersRepository.size(), foundUsers);
+        }
+        // not null requestedPattern
+        String requestedPattern = getRegexOf(request.getLikeString());
+        log.info("Get request with likeString=" + request.getLikeString() + " converted as " + requestedPattern);
+        usersRepository.forEach(user -> {
+            if (user.getLogin().matches(requestedPattern)) {
+                foundUsers.add(new ResponseV3.UserV3(
+                        user.getLogin(),
+                        user.getName(),
+                        user.getSurname(),
+                        user.getPatronymic()));
+            }
+        });
+        response.setFoundUsers(foundUsers);
+        return response;
+    }
+
         if (request.getLikeString() == null) {
             log.info("Get request with null likeString");
             return new ResponseV3(usersRepository.size(), null);
