@@ -215,9 +215,16 @@ public class MainController {
         log.info("Get V5 request");
         addAllUsersToSetV5(foundUsers);
         log.info(foundUsers.toString());
+        // process likeString
+        if (request.getLikeString() != null) {
+            String requestedLike = getRegexOf(request.getLikeString());
+            log.info("Process regexString=" + request.getRegexString());
+            addMatchesUsersToSetV5(foundUsers, requestedLike, false);
+        }
+        log.info(foundUsers.toString());
         // process regexString
         if (request.getRegexString() != null) {
-            String requestedRegex = getRegexOf(request.getRegexString());
+            String requestedRegex = request.getRegexString();
             log.info("Process regexString=" + request.getRegexString());
             addMatchesUsersToSetV5(foundUsers, requestedRegex, false);
         }

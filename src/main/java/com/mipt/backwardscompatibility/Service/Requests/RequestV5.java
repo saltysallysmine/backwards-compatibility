@@ -8,6 +8,10 @@ import lombok.Data;
 @AllArgsConstructor
 public class RequestV5 {
 
+    // this parameter added for backward compatibility
+    @Nullable
+    String likeString;
+
     @Nullable
     String regexString;
 
@@ -19,5 +23,14 @@ public class RequestV5 {
 
     @Nullable
     Integer rightAgeBorder;
+
+    public RequestV5(@Nullable String regexString, @Nullable String surname, @Nullable Integer leftAgeBorder,
+              @Nullable Integer rightAgeBorder) {
+        this.likeString = null;
+        this.regexString = regexString;
+        this.surname = surname;
+        this.leftAgeBorder = leftAgeBorder;
+        this.rightAgeBorder = rightAgeBorder;
+    }
 
 }
