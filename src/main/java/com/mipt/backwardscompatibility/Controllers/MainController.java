@@ -1,6 +1,7 @@
 package com.mipt.backwardscompatibility.Controllers;
 
 import com.mipt.backwardscompatibility.Service.Requests.RequestV1;
+import com.mipt.backwardscompatibility.Service.Requests.RequestV4;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV1;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV2;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV3;
@@ -113,30 +114,44 @@ public class MainController {
         return response;
     }
 
-        if (request.getLikeString() == null) {
-            log.info("Get request with null likeString");
-            return new ResponseV3(usersRepository.size(), null);
-        }
-        Set<ResponseV3.UserV3> foundUsers = new java.util.HashSet<>(Set.of());
-        ResponseV3 response = new ResponseV3(usersRepository.size(), null);
-        String requestedPattern = getRegexOf(request.getLikeString());
-        log.info("Get request with likeString=" + request.getLikeString() + " converted as " + requestedPattern);
+    public void addMatchesUsersToSetV4(Set<ResponseV3.UserV3> usersContainer, String pattern) {
         usersRepository.forEach(user -> {
-            if (user.getLogin().matches(requestedPattern)) {
-                foundUsers.add(new ResponseV3.UserV3(
+            if (user.getLogin().matches(pattern)) {
+                usersContainer.add(new ResponseV3.UserV3(
                         user.getLogin(),
                         user.getName(),
                         user.getSurname(),
                         user.getPatronymic()));
             }
         });
+    }
+
+    @PostMapping("v4/get-users")
+    public ResponseV3 getUsersV4(@NotNull @RequestBody RequestV4 request) {
+        Set<ResponseV3.UserV3> foundUsers = new java.util.HashSet<>(Set.of());
+        ResponseV3 response = new ResponseV3(usersRepository.size(), null);
+        // null all of requestedPatterns -> send all users
+        if (request.getLikeString() == null && request.getRegexString() == null) {
+            log.info("Get request with null likeString and null regexString");
+            addMatchesUsersToSetV4(foundUsers, ".*");
+            return new ResponseV3(usersRepository.size(), foundUsers);
+        }
+        // null regexString
+        if (request.getRegexString() == null) {
+            String requestedLike = getRegexOf(request.getLikeString());
+            log.info("Get request with likeString=" + request.getLikeString() + " converted as " + requestedLike);
+            addMatchesUsersToSetV4(foundUsers, requestedLike);
+            response.setFoundUsers(foundUsers);
+            return response;
+        }
+        // not null regexString
+        String requestedRegex = request.getRegexString();
+        log.info("Get request with regexString=" + request.getRegexString());
+        addMatchesUsersToSetV4(foundUsers, requestedRegex);
         response.setFoundUsers(foundUsers);
         return response;
     }
 
-//    @PostMapping("v4/get-users")
-//    public Set<User> getUsersV4(@NotNull @RequestBody GetUsersRequest request) { }
-//
 //    @PostMapping("v5/get-users")
 //    public Set<User> getUsersV5(@NotNull @RequestBody GetUsersRequest request) {
 //
