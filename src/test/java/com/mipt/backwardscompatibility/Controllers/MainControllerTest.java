@@ -41,7 +41,7 @@ class MainControllerTest {
     public void getRegexOfTest() {
         String likeString = ".* Something_like_%";
         String expectedString = "\\.\\* Something.like..*";
-        assertEquals(mainController.getRegexOf(likeString), expectedString);
+        assertEquals(expectedString, mainController.getRegexOf(likeString));
     }
 
     public void getUsersAndAssertEqualsV1(String likeString) {
@@ -55,7 +55,7 @@ class MainControllerTest {
             foundUsers.add(new ResponseV1.UserV1("VALERY"));
         }
         ResponseV1 expectedResponse = new ResponseV1(foundUsers);
-        assertEquals(response, expectedResponse);
+        assertEquals(expectedResponse, response);
     }
 
     @Test
@@ -79,7 +79,7 @@ class MainControllerTest {
             foundUsers.add(new ResponseV2.UserV2("VALERY"));
         }
         ResponseV2 expectedResponse = new ResponseV2(4, foundUsers);
-        assertEquals(response, expectedResponse);
+        assertEquals(expectedResponse, response);
     }
 
     @Test
@@ -100,12 +100,12 @@ class MainControllerTest {
                 new ResponseV3.UserV3("ANDreY", "Andrey", "Menelaevich", null)));
         if (likeString == null) {
             foundUsers.add(new ResponseV3.UserV3(
-                    "KONSTANTIN", "Konstantin","Bolshikov", "Andreevich"));
+                    "KONSTANTIN", "Konstantin", "Bolshikov", "Andreevich"));
             foundUsers.add(new ResponseV3.UserV3(
                     "VALERY", "Valery", "Bergman", "Dmitrievich"));
         }
         ResponseV3 expectedResponse = new ResponseV3(4, foundUsers);
-        assertEquals(response, expectedResponse);
+        assertEquals(expectedResponse, response);
     }
 
     @Test
