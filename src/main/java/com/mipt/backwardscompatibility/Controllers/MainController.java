@@ -11,7 +11,7 @@ import com.mipt.backwardscompatibility.Service.User;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,7 +39,7 @@ public class MainController {
                 .replaceAll("(?=[^\\\\])_", ".");
     }
 
-    @PostMapping("v1/get-users")
+    @GetMapping("v1/get-users")
     public ResponseV1 getUsersV1(@NotNull @RequestBody RequestV1 request) {
         Set<ResponseV1.UserV1> foundUsers = new java.util.HashSet<>(Set.of());
         ResponseV1 response = new ResponseV1(null);
@@ -63,7 +63,7 @@ public class MainController {
         return response;
     }
 
-    @PostMapping("v2/get-users")
+    @GetMapping("v2/get-users")
     public ResponseV2 getUsersV2(@NotNull @RequestBody RequestV1 request) {
         Set<ResponseV2.UserV2> foundUsers = new java.util.HashSet<>(Set.of());
         ResponseV2 response = new ResponseV2(usersRepository.size(), null);
@@ -87,7 +87,7 @@ public class MainController {
         return response;
     }
 
-    @PostMapping("v3/get-users")
+    @GetMapping("v3/get-users")
     public ResponseV3 getUsersV3(@NotNull @RequestBody RequestV1 request) {
         Set<ResponseV3.UserV3> foundUsers = new java.util.HashSet<>(Set.of());
         ResponseV3 response = new ResponseV3(usersRepository.size(), null);
@@ -131,7 +131,7 @@ public class MainController {
         });
     }
 
-    @PostMapping("v4/get-users")
+    @GetMapping("v4/get-users")
     public ResponseV3 getUsersV4(@NotNull @RequestBody RequestV4 request) {
         Set<ResponseV3.UserV3> foundUsers = new java.util.HashSet<>(Set.of());
         ResponseV3 response = new ResponseV3(usersRepository.size(), null);
@@ -205,7 +205,7 @@ public class MainController {
         });
     }
 
-    @PostMapping("v5/get-users")
+    @GetMapping("v5/get-users")
     public ResponseV3 getUsersV5(@NotNull @RequestBody RequestV5 request) {
         Set<ResponseV3.UserV3> foundUsers = new java.util.HashSet<>(Set.of());
         ResponseV3 response = new ResponseV3(usersRepository.size(), null);
