@@ -2,17 +2,22 @@ package com.mipt.backwardscompatibility.Controllers;
 
 import com.mipt.backwardscompatibility.Service.Requests.RequestV1;
 import com.mipt.backwardscompatibility.Service.Requests.RequestV4;
+import com.mipt.backwardscompatibility.Service.Requests.RequestV5;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV1;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV2;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV3;
 import com.mipt.backwardscompatibility.Service.User;
+
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
@@ -152,9 +157,88 @@ public class MainController {
         return response;
     }
 
-//    @PostMapping("v5/get-users")
-//    public Set<User> getUsersV5(@NotNull @RequestBody GetUsersRequest request) {
-//
-//    }
+    public void addMatchesUsersToSetV5(Set<ResponseV3.UserV3> usersContainer, String pattern, boolean isSurname) {
+        Set<ResponseV3.UserV3> foundUsers = new HashSet<>(Set.of());
+        usersRepository.forEach(user -> {
+            if (isSurname && Objects.equals(user.getSurname(), pattern) ||
+                    !isSurname && user.getLogin().matches(pattern)) {
+                foundUsers.add(new ResponseV3.UserV3(
+                        user.getLogin(),
+                        user.getName(),
+                        user.getSurname(),
+                        user.getPatronymic()));
+            }
+        });
+        usersContainer.retainAll(foundUsers);
+    }
+
+    public void addMatchesUsersToSetV5(
+            Set<ResponseV3.UserV3> usersContainer, @Nullable Integer leftBorder, @Nullable Integer rightBorder) {
+        Set<ResponseV3.UserV3> foundUsers = new HashSet<>(Set.of());
+        usersRepository.forEach(user -> {
+            boolean userMatches = true;
+            if (user.getAge() == null) {
+                userMatches = false;
+            } else if (leftBorder != null && user.getAge() < leftBorder) {
+                userMatches = false;
+            } else if (rightBorder != null && user.getAge() > rightBorder) {
+                userMatches = false;
+            }
+            if (userMatches) {
+                foundUsers.add(new ResponseV3.UserV3(
+                        user.getLogin(),
+                        user.getName(),
+                        user.getSurname(),
+                        user.getPatronymic()));
+            }
+        });
+        usersContainer.retainAll(foundUsers);
+    }
+
+    public void addAllUsersToSetV5(Set<ResponseV3.UserV3> usersContainer) {
+        usersRepository.forEach(user -> {
+            usersContainer.add(new ResponseV3.UserV3(
+                    user.getLogin(),
+                    user.getName(),
+                    user.getSurname(),
+                    user.getPatronymic()));
+        });
+    }
+
+    @PostMapping("v5/get-users")
+    public ResponseV3 getUsersV5(@NotNull @RequestBody RequestV5 request) {
+        Set<ResponseV3.UserV3> foundUsers = new java.util.HashSet<>(Set.of());
+        ResponseV3 response = new ResponseV3(usersRepository.size(), null);
+        // If all of requestedPatterns are null we will don't go to any if
+        // and return full list of users. Else we will retain it with each
+        // found users set and then return.
+        log.info("Get V5 request");
+        addAllUsersToSetV5(foundUsers);
+        log.info(foundUsers.toString());
+        // process regexString
+        if (request.getRegexString() != null) {
+            String requestedRegex = getRegexOf(request.getRegexString());
+            log.info("Process regexString=" + request.getRegexString());
+            addMatchesUsersToSetV5(foundUsers, requestedRegex, false);
+        }
+        log.info(foundUsers.toString());
+        // process age borders
+        if (request.getLeftAgeBorder() != null || request.getRightAgeBorder() != null) {
+            Integer requestedLeftAgeBorder = request.getLeftAgeBorder();
+            Integer requestedRightAgeBorder = request.getRightAgeBorder();
+            log.info("Process age borders");
+            addMatchesUsersToSetV5(foundUsers, requestedLeftAgeBorder, requestedRightAgeBorder);
+        }
+        log.info(foundUsers.toString());
+        // process surname
+        if (request.getSurname() != null) {
+            String requestedSurname = request.getSurname();
+            log.info("Process surname=" + request.getSurname());
+            addMatchesUsersToSetV5(foundUsers, requestedSurname, true);
+        }
+        log.info(foundUsers.toString());
+        response.setFoundUsers(foundUsers);
+        return response;
+    }
 
 }

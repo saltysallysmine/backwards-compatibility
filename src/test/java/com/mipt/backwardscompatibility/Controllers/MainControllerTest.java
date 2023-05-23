@@ -2,6 +2,7 @@ package com.mipt.backwardscompatibility.Controllers;
 
 import com.mipt.backwardscompatibility.Service.Requests.RequestV1;
 import com.mipt.backwardscompatibility.Service.Requests.RequestV4;
+import com.mipt.backwardscompatibility.Service.Requests.RequestV5;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV1;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV2;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV3;
@@ -33,7 +34,7 @@ class MainControllerTest {
         mainController = new MainController();
         mainController.setUsersRepository(Set.of(
                 new User("ANDREY", "Andrey", "Shinkarenko", "Vladimirovich", 18),
-                new User("ANDreY", "Andrey", "Menelaevich", null, 18),
+                new User("ANDreY", "Andrey", "Menelaevich", null, 19),
                 new User("KONSTANTIN", "Konstantin", "Bolshikov", "Andreevich", 19),
                 new User("VALERY", "Valery", "Bergman", "Dmitrievich", 18)));
     }
@@ -164,6 +165,27 @@ class MainControllerTest {
         getUsersAndAssertEqualsV4("%__Y", null);
         // Assert all nulls
         getUsersAndAssertEqualsV4(null, null);
+    }
+
+    public void getUsersAndAssertEqualsV5(RequestV5 requestV5) {
+        ResponseV3 response = mainController.getUsersV5(requestV5);
+        Set<ResponseV3.UserV3> foundUsers = new HashSet<>(Set.of());
+        foundUsers.add(new ResponseV3.UserV3(
+                "VALERY", "Valery", "Bergman", "Dmitrievich"));
+        ResponseV3 expectedResponse = new ResponseV3(4, foundUsers);
+        assertEquals(expectedResponse, response);
+    }
+
+    @Test
+    public void getUserV5Test() {
+        /* In these example:
+         * - regexString matches to ANDREY, ANDreY and VALERY;
+         * - left and right age borders matches to ANDREY and VALERY (of the remaining);
+         * - surname matches to VALERY.
+         */
+        // Assert results merge
+        getUsersAndAssertEqualsV5(new RequestV5(
+                "[A-Za-z]+Y", "Bergman", 7, 18));
     }
 
 }
