@@ -7,18 +7,25 @@ import com.mipt.backwardscompatibility.Service.Responses.ResponseV1;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV2;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV3;
 import com.mipt.backwardscompatibility.Service.User;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import java.util.Set;
 import java.util.HashSet;
 
+import com.google.gson.Gson;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeAll;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -178,14 +185,77 @@ class MainControllerTest {
 
     @Test
     public void getUserV5Test() {
-        /* In these example:
+        /* In this example:
          * - regexString matches to ANDREY, ANDreY and VALERY;
          * - left and right age borders matches to ANDREY and VALERY (of the remaining);
          * - surname matches to VALERY.
          */
         // Assert results merge
         getUsersAndAssertEqualsV5(new RequestV5(
-                "[A-Za-z]+Y", "Bergman", 7, 18));
+                null, "[A-Za-z]+Y", "Bergman", 7, 18));
+    }
+
+
+    // Backwards compatibility tests
+
+    /*
+     * This test asks for a second version with a DTO of the first
+     */
+    @Test
+    public void backwardsCompatibilityTestV1toV2() throws Exception {
+        Gson gson = new Gson();
+        String content = "{\"likeString\":\"AND__Y\"}";
+        String response = mockMvc.perform(get("/backwards-compatibility/v2/get-users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        ResponseV1 responseV1 = gson.fromJson(response, ResponseV1.class);
+        assertNotNull(responseV1.getFoundUsers());
+        assertEquals(2, responseV1.getFoundUsers().size());
+        assertTrue(responseV1.getFoundUsers().contains(new ResponseV1.UserV1("ANDREY")));
+        assertTrue(responseV1.getFoundUsers().contains(new ResponseV1.UserV1("ANDreY")));
+    }
+
+    /*
+     * This test asks for a fourth version with a DTO of the second
+     */
+    @Test
+    public void backwardsCompatibilityTestV2toV4() throws Exception {
+        Gson gson = new Gson();
+        String content = "{\"likeString\":\"AND__Y\"}";
+        String response = mockMvc.perform(get("/backwards-compatibility/v4/get-users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        ResponseV2 responseV2 = gson.fromJson(response, ResponseV2.class);
+        assertNotNull(responseV2.getFoundUsers());
+        assertEquals(2, responseV2.getFoundUsers().size());
+        assertTrue(responseV2.getFoundUsers().contains(new ResponseV2.UserV2("ANDREY")));
+        assertTrue(responseV2.getFoundUsers().contains(new ResponseV2.UserV2("ANDreY")));
+        assertEquals(4, responseV2.getUsersCount());
+    }
+
+    /*
+     * This test asks for a fifth version with a DTO of the fourth
+     */
+    @Test
+    public void backwardsCompatibilityTestV4toV5() throws Exception {
+        /* In this example:
+         * - likeString matches to ANDREY and ANDreY;
+         * - regexString matches to ANDreY.
+         */
+        Gson gson = new Gson();
+        String content = "{\"likeString\":\"AND__Y\", \"regexString\":\".*reY\"}";
+        String response = mockMvc.perform(get("/backwards-compatibility/v5/get-users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        ResponseV3 responseV3 = gson.fromJson(response, ResponseV3.class);
+        assertNotNull(responseV3.getFoundUsers());
+        assertEquals(1, responseV3.getFoundUsers().size());
+        assertTrue(responseV3.getFoundUsers().contains(
+                new ResponseV3.UserV3("ANDreY", "Andrey", "Menelaevich", null)));
+        assertEquals(4, responseV3.getUsersCount());
     }
 
 }
