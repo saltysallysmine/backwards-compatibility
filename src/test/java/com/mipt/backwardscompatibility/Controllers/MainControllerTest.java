@@ -8,7 +8,6 @@ import com.mipt.backwardscompatibility.Service.Responses.ResponseV2;
 import com.mipt.backwardscompatibility.Service.Responses.ResponseV3;
 import com.mipt.backwardscompatibility.Service.User;
 
-import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -186,14 +185,14 @@ class MainControllerTest {
 
     @Test
     public void getUserV5Test() {
-        /* In these example:
+        /* In this example:
          * - regexString matches to ANDREY, ANDreY and VALERY;
          * - left and right age borders matches to ANDREY and VALERY (of the remaining);
          * - surname matches to VALERY.
          */
         // Assert results merge
         getUsersAndAssertEqualsV5(new RequestV5(
-                "[A-Za-z]+Y", "Bergman", 7, 18));
+                null, "[A-Za-z]+Y", "Bergman", 7, 18));
     }
 
 
@@ -234,6 +233,29 @@ class MainControllerTest {
         assertTrue(responseV2.getFoundUsers().contains(new ResponseV2.UserV2("ANDREY")));
         assertTrue(responseV2.getFoundUsers().contains(new ResponseV2.UserV2("ANDreY")));
         assertEquals(4, responseV2.getUsersCount());
+    }
+
+    /*
+     * This test asks for a fifth version with a DTO of the fourth
+     */
+    @Test
+    public void backwardsCompatibilityTestV4toV5() throws Exception {
+        /* In this example:
+         * - likeString matches to ANDREY and ANDreY;
+         * - regexString matches to ANDreY.
+         */
+        Gson gson = new Gson();
+        String content = "{\"likeString\":\"AND__Y\", \"regexString\":\".*reY\"}";
+        String response = mockMvc.perform(get("/backwards-compatibility/v5/get-users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        ResponseV3 responseV3 = gson.fromJson(response, ResponseV3.class);
+        assertNotNull(responseV3.getFoundUsers());
+        assertEquals(1, responseV3.getFoundUsers().size());
+        assertTrue(responseV3.getFoundUsers().contains(
+                new ResponseV3.UserV3("ANDreY", "Andrey", "Menelaevich", null)));
+        assertEquals(4, responseV3.getUsersCount());
     }
 
 }
