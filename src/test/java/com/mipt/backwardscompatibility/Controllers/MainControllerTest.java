@@ -217,4 +217,23 @@ class MainControllerTest {
         assertTrue(responseV1.getFoundUsers().contains(new ResponseV1.UserV1("ANDreY")));
     }
 
+    /*
+     * This test asks for a fourth version with a DTO of the second
+     */
+    @Test
+    public void backwardsCompatibilityTestV2toV4() throws Exception {
+        Gson gson = new Gson();
+        String content = "{\"likeString\":\"AND__Y\"}";
+        String response = mockMvc.perform(get("/backwards-compatibility/v4/get-users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        ResponseV2 responseV2 = gson.fromJson(response, ResponseV2.class);
+        assertNotNull(responseV2.getFoundUsers());
+        assertEquals(2, responseV2.getFoundUsers().size());
+        assertTrue(responseV2.getFoundUsers().contains(new ResponseV2.UserV2("ANDREY")));
+        assertTrue(responseV2.getFoundUsers().contains(new ResponseV2.UserV2("ANDreY")));
+        assertEquals(4, responseV2.getUsersCount());
+    }
+
 }
